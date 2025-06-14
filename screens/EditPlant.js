@@ -99,7 +99,7 @@ const EditPlant = ({ route, navigation }) => {
 
     const formData = new FormData();
     formData.append('alias', alias.trim());
-    formData.append('garden_id', gardenId);  // <-- Este es el cambio clave
+    formData.append('garden_id', gardenId);  
 
     if (image && !image.startsWith('http')) {
       const fileType = image.split('.').pop();
@@ -145,14 +145,17 @@ const EditPlant = ({ route, navigation }) => {
           text: 'Aceptar',
           onPress: () => {
             console.log('Navegando a Plants después de guardar, gardenId:', gardenId, ' gardenName:', gardenName);
-            navigation.goBack();
+            navigation.navigate('Plants', {
+              refresh: true,
+              gardenId,
+              gardenName,
+            });
           },
         },
       ]);
     } catch (error) {
       console.warn('Error en handleSaveChanges:', error.message || error);
-      // Aunque falle, navegamos para no bloquear UX
-      navigation.navigate('Plants', { refresh: true });
+      navigation.navigate('Plants', { refresh: true, gardenId, gardenName });
     } finally {
       setLoading(false);
     }
@@ -235,7 +238,6 @@ const EditPlant = ({ route, navigation }) => {
   );
 };
 
-// Aquí irían los estilos (no modifiqué nada de ellos)
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#fff' },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, color: '#4CAF50' },

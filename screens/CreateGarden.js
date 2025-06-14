@@ -146,7 +146,7 @@ const CreateGarden = ({ route, navigation }) => {
     } else {
       Alert.alert(
         'Atención',
-        'El jardín fue actualizado, pero hubo un problema con la respuesta del servidor.'
+        'El jardín fue actualizado'
       );
     }
 
@@ -155,7 +155,7 @@ const CreateGarden = ({ route, navigation }) => {
     // Esto no debería ocurrir porque useFetchPut no lanza error, pero por si acaso
     Alert.alert(
       'Atención',
-      'El jardín fue actualizado, pero hubo un problema con la respuesta del servidor.'
+      'El jardín fue actualizado'
     );
     navigation.goBack();
   }

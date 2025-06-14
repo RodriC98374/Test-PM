@@ -17,6 +17,7 @@ const Plants = ({ route, navigation }) => {
   useFocusEffect(
   React.useCallback(() => {
     if (route.params?.refresh) {
+      console.log('[Plants] Se recibió refresh, forzando recarga de datos...');
       setReloadFlag(prev => !prev); // Fuerza la recarga de datos
       navigation.setParams({ refresh: false }); // Limpia el flag para evitar recargas innecesarias
     }

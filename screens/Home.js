@@ -1,12 +1,26 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  ScrollView,
+  Image,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useAuth } from '../core/AuthContext';
 import { useFetch } from '../hooks/useFetch';
 import { useNavigation } from '@react-navigation/native';
-import { apiFetch } from '../core/api';
+import { LinearGradient } from 'expo-linear-gradient';
 import WeatherWidget from '../components/WeatherWidget';
+
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 const TITLE_COLOR = '#4CAF50';
 
@@ -22,77 +36,122 @@ const Home = () => {
     }
   }, [accessToken]);
 
-  const { data, loading, error, cancelRequest } = useFetch(
-    '/gardens',
-    accessToken
-  );
+  const { data, loading, error, cancelRequest } = useFetch('/gardens', accessToken);
+
+  // Animación de entrada para la card
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(30);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.ease) });
+    translateY.value = withTiming(0, { duration: 600, easing: Easing.out(Easing.ease) });
+  }, []);
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   return (
+    <LinearGradient
+      colors={isDark ? ['#0d2600', '#111'] : ['#eafaf1', '#fff']}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={
+              isDark
+                ? require('../assets/homePlantDark.png')
+                : require('../assets/homePlantLight.png')
+            }
+            style={styles.headerImage}
+            resizeMode="contain"
+          />
+        </View>
 
-    <ScrollView style={[styles.container, isDark && { backgroundColor: '#111' }]}>
-      <View style={[styles.content, { paddingHorizontal: 24 }, { paddingTop: 50 }]}>
-        <Text style={[styles.titleBlack, isDark && { color: '#fff' }]}>Bienvenido a </Text>
-        <Text style={[styles.titleGreen, isDark && { color: '#aed581' }]}>FloraFind</Text>
-        <Text style={[styles.subtitle, isDark && { color: '#bbb' }]}>Gestiona tus jardines, plantas y recordatorios de riego fácilmente.</Text>
-        
-        {/* Widget del clima */}
-        <WeatherWidget />
+        <Text style={[styles.title, isDark && { color: '#aed581' }]}>
+          Bienvenido a <Text style={styles.highlight}>FloraFind</Text>
+        </Text>
 
-        <TouchableOpacity
-          style={styles.alarmButton}
-          onPress={() => navigation.navigate('Alarms')}
-        >
-          <Ionicons name="alarm-outline" size={28} color="#4CAF50" style={{ marginRight: 10 }} />
-          <Text style={styles.alarmButtonText}>Crear alarmas</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <Animated.View style={[styles.card, isDark && { backgroundColor: '#1c1c1c' }, animatedCardStyle]}>
+          <Text style={[styles.subtitle, isDark && { color: '#bbb' }]}>
+            Gestiona tus jardines, plantas y recordatorios de riego fácilmente.
+          </Text>
 
+          <WeatherWidget />
+
+          <TouchableOpacity
+            style={styles.alarmButton}
+            onPress={() => navigation.navigate('Alarms')}
+          >
+            <Ionicons name="alarm-outline" size={28} color="#fff" style={{ marginRight: 10 }} />
+            <Text style={styles.alarmButtonText}>Crear alarmas</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContent: {
+    paddingTop: 50,
+    paddingBottom: 40,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
-  content: {
-    flex: 1,
+  imageContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
   },
-  titleBlack: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: TITLE_COLOR,
+  headerImage: {
+    width: 140,
+    height: 140,
+  },
+  title: {
+    fontSize: 28,
     textAlign: 'center',
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#4CAF50',
   },
-  titleGreen: {
-    fontSize: 30,
+  highlight: {
+    color: '#4CAF50',
     fontWeight: 'bold',
-    color: TITLE_COLOR,
-    textAlign: 'center',
   },
   subtitle: {
     fontSize: 17,
     color: '#444',
-    marginTop: 8,
     marginBottom: 24,
     textAlign: 'center',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+    marginBottom: 20,
   },
   alarmButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e7f6e9',
-    borderRadius: 10,
-    paddingVertical: 12,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 24,
+    justifyContent: 'center',
+    marginTop: 20,
   },
   alarmButtonText: {
-    color: '#4CAF50',
-    fontWeight: 'bold',
-    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 17,
   },
-
 });
 
 export default Home;
