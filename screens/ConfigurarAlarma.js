@@ -160,7 +160,20 @@ const ConfigurarAlarma = ({ route, navigation }) => {
         await Promise.all(promises);
       }
 
-      const newAlarm = { id: uidBase, title, description, hour: alarmHour, minute: alarmMinute, days: alarmDays, frequency: alarmFrequency, date: alarmFrequency === 'once' ? alarmDate.toISOString().split('T')[0] : null, gardens, plants, type: reminderType };
+      const newAlarm = {
+          id: uidBase,
+          title,
+          description,
+          hour: alarmHour,
+          minute: alarmMinute,
+          days: alarmDays,
+          frequency: alarmFrequency,
+          date: alarmFrequency === 'once' ? alarmDate.toISOString().split('T')[0] : null,
+          gardens,
+          plants,
+          plantId: plants?.[0]?.id || null,
+          type: reminderType,
+        };
       const stored = await AsyncStorage.getItem('alarms');
       const arr = stored ? JSON.parse(stored) : [];
       arr.push(newAlarm);

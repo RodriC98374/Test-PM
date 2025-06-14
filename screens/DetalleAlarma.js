@@ -40,8 +40,12 @@ const DetalleAlarma = ({ route, navigation }) => {
         }
         if (found.date) {
           found.date = new Date(found.date);
+          found.hour = found.date.getHours();
+          found.minute = found.date.getMinutes();
         } else {
           found.date = new Date();
+          found.hour = found.date.getHours();
+          found.minute = found.date.getMinutes();
         }
         if (!Array.isArray(found.days)) {
           found.days = [];
@@ -138,7 +142,7 @@ const DetalleAlarma = ({ route, navigation }) => {
             const filtered = alarms.filter(a => a.id !== alarm.id);
             await AsyncStorage.setItem('alarms', JSON.stringify(filtered));
             Alert.alert('Eliminado', 'La alarma ha sido eliminada');
-            navigation.goBack();
+            navigation.navigate('GestionAlarmas');
           } catch (e) {
             Alert.alert('Error', 'No se pudo eliminar la alarma');
           }
@@ -291,7 +295,13 @@ const DetalleAlarma = ({ route, navigation }) => {
           />
           {showTimePicker && (
             <DateTimePicker
-              value={new Date(0, 0, 0, alarm.hour, alarm.minute)}
+              value={new Date(
+                0,
+                0,
+                0,
+                typeof alarm.hour === 'number' ? alarm.hour : 12,
+                typeof alarm.minute === 'number' ? alarm.minute : 0
+              )}
               mode="time"
               display="default"
               onChange={onTimeChange}
@@ -309,25 +319,25 @@ const DetalleAlarma = ({ route, navigation }) => {
 
       <View style={styles.buttonContainer}>
         {editMode ? (
-            <>
+          <>
             <View style={styles.buttonWrapper}>
-                <Button title="Guardar" onPress={handleSave} color="#4CAF50" />
+              <Button title="Guardar" onPress={handleSave} color="#4CAF50" />
             </View>
             <View style={styles.buttonWrapper}>
-                <Button title="Cancelar" onPress={() => setEditMode(false)} color="#f44336" />
+              <Button title="Cancelar" onPress={() => setEditMode(false)} color="#f44336" />
             </View>
-            </>
+          </>
         ) : (
-            <>
+          <>
             <View style={styles.buttonWrapper}>
-                <Button title="Editar" onPress={() => setEditMode(true)} color="#4CAF50" />
+              <Button title="Editar" onPress={() => setEditMode(true)} color="#4CAF50" />
             </View>
             <View style={styles.buttonWrapper}>
-                <Button title="Eliminar" onPress={handleDelete} color="#81C784" />
+              <Button title="Eliminar" onPress={handleDelete} color="#81C784" />
             </View>
-            </>
+          </>
         )}
-        </View>
+      </View>
     </ScrollView>
   );
 };
@@ -417,10 +427,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   buttonWrapper: {
-        flex: 1,
-        minWidth: 140,
-        marginHorizontal: 8,
-        },
+    flex: 1,
+    minWidth: 140,
+    marginHorizontal: 8,
+  },
 });
 
 export default DetalleAlarma;

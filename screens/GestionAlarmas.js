@@ -22,14 +22,16 @@ const GestionAlarmasScreen = () => {
       headerRight: () => (
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('ConfigurarAlarma', {
+            navigation.navigate('añadirmanual', {
               plant: { id: plant?.id, alias: plant?.alias },
               garden: { id: garden?.id, name: garden?.name },
             })
           }
+
+            
           style={{ marginRight: 16 }}
         >
-          <Ionicons name="add" size={28} color="black" />
+          <Ionicons name="add" size={28} color="4CAF50" />
         </TouchableOpacity>
       ),
     });
