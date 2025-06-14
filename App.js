@@ -28,6 +28,7 @@ import ConfigurarAlarma from './screens/ConfigurarAlarma';
 import GestionAlarmas from './screens/GestionAlarmas';
 import NotificationsScreen from './screens/NotificationsScreen';
 import DetalleAlarmaScreen from './screens/DetalleAlarma';
+import añadirmanual from './screens/añadirmanual';
 
 
 // Recuperación de contraseña
@@ -135,8 +136,8 @@ function AppContent() {
               <Stack.Screen name="CreateNotes" component={CreateNotes} options={{title: ' '}} />
               <Stack.Screen name="WeatherDetails" component={WeatherDetails} options={{ title: 'Detalles del Clima' }} />
 
-              <Stack.Screen name="GestionAlarmas" component={GestionarAlarmas} />
-              
+              <Stack.Screen name="GestionAlarmas" component={GestionAlarmas} />
+              <Stack.Screen name="añadirmanual" component={añadirmanual} options={{ title: 'Añadir Alarma Manualmente' }} />
               <Stack.Screen name="DetalleAlarma" component={DetalleAlarmaScreen} options={{ title: '' }} />
             </>
           )}

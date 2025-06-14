@@ -49,9 +49,10 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "87cc8b2f-8c53-4609-a1f4-96359516496e"
+        //"projectId": "75e992f5-5719-4d31-8f44-f317670207a1"
       }
     },
-    "owner": "rodric98374"
+    "owner": "jose701"
+
   }
 }

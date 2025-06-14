@@ -22,13 +22,13 @@ function normalizeType(type) {
 }
 
 export default function AlarmCard({ alarm, plantAlias, gardenName, reviewed }) {
-  const hourFormatted = alarm.minute !== undefined
-    ? `${alarm.hour?.toString().padStart(2, '0')}:${alarm.minute?.toString().padStart(2, '0')}`
+  const alarmDate = alarm.date ? new Date(alarm.date) : null;
+
+  const hourFormatted = alarmDate
+    ? `${alarmDate.getHours().toString().padStart(2, '0')}:${alarmDate.getMinutes().toString().padStart(2, '0')}`
     : '00:00';
 
-  const dateFormatted = alarm.date
-    ? new Date(alarm.date).toLocaleDateString()
-    : 'Sin fecha';
+  const dateFormatted = alarmDate ? alarmDate.toLocaleDateString() : 'Sin fecha';
 
   const normalizedType = normalizeType(alarm.type);
   const iconSource = iconMap[normalizedType] || iconMap.otros;
