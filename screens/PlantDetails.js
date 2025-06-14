@@ -6,7 +6,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  Modal,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,12 +16,13 @@ import BotanicalGuide from '../components/BotanicalGuide';
 const defaultImgPlant = require('../assets/defaultPlant.png');
 
 const PlantDetails = ({ route, navigation }) => {
-  const { plant: plantParam } = route.params;
-  const { gardenName } = route.params;
+  const { plant: plantParam, gardenName } = route.params;
   const { accessToken } = useAuth();
   
   const [plant, setPlant] = useState(plantParam);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
   
   
   // Estado para la info de Wikipedia
@@ -91,50 +92,109 @@ const PlantDetails = ({ route, navigation }) => {
       ? { uri: plant.image_url }
       : defaultImgPlant;
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Confirmar eliminación',
-      `¿Deseas eliminar la planta "${plant.alias || 'sin nombre'}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoadingDelete(true);
-              const response = await fetch(
-                `https://florafind-aau6a.ondigitalocean.app/gardens/plants/${plant.id}`,
-                {
-                  method: 'DELETE',
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: 'application/json',
-                  },
-                }
-              );
-              const data = await response.json();
+  // const handleDelete = () => {
+  //   console.log('[DEBUG] handleDelete ejecutado');
+  //   console.log('[DEBUG] plant.id:', plant.id);
+  //   console.log('[DEBUG] accessToken:', accessToken);
 
-              if (response.ok) {
-                Alert.alert('Éxito', data.message || 'Planta eliminada correctamente', [
-                  {
-                    text: 'Aceptar',
-                    onPress: () => navigation.navigate('Plants', { refresh: true }),
-                  },
-                ]);
-              } else {
-                throw new Error(data.detail || 'Error eliminando planta');
-              }
-            } catch (error) {
-              Alert.alert('Error', error.message || 'No se pudo eliminar la planta');
-            } finally {
-              setLoadingDelete(false);
-            }
+
+  //   Alert.alert(
+  //     'Confirmar eliminación',
+  //     `¿Deseas eliminar la planta "${plant.alias || 'sin nombre'}"?`,
+  //     [
+  //       { text: 'Cancelar', style: 'cancel' },
+  //       {
+  //         text: 'Eliminar',
+  //         style: 'destructive',
+  //         onPress: async () => {
+  //           try {
+  //             setLoadingDelete(true);
+  //             console.log('accessToken?:', accessToken);
+  //             const response = await fetch(
+  //               `https://florafind-aau6a.ondigitalocean.app/gardens/plants/${plant.id}`,
+  //               {
+  //                 method: 'DELETE',
+  //                 headers: {
+  //                   Authorization: `Bearer ${accessToken}`,
+  //                   Accept: 'application/json',
+  //                 },
+  //               }
+  //             );
+  //             const isJson = response.headers.get("content-type")?.includes("application/json");
+  //             const data = isJson ? await response.json() : {};
+  //             console.log('[Delete] Status:', response.status);
+  //             console.log('[Delete] Response:', data);
+
+  //             if (response.ok) {
+  //               Alert.alert('Éxito', data.message || 'Planta eliminada correctamente', [
+  //                 {
+  //                   text: 'Aceptar',
+  //                   onPress: () => {
+  //                     console.log('[Delete] Redirigiendo a Plants con refresh...');
+  //                     navigation.navigate('Plants', {
+  //                       refresh: true,
+  //                       gardenId: plant.garden_id,
+  //                       gardenName: gardenName,
+  //                     });
+  //                   },
+  //                 },
+  //               ]);
+  //             } else {
+  //               throw new Error(data.detail || 'Error eliminando planta');
+  //             }
+  //           } catch (error) {
+  //             console.error('[Delete] Error:', error.message);
+  //             Alert.alert('Error', error.message || 'No se pudo eliminar la planta');
+  //           } finally {
+  //             setLoadingDelete(false);
+  //           }
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
+
+  const handleDelete = async () => {
+    try {
+      setLoadingDelete(true);
+      const response = await fetch(
+        `https://florafind-aau6a.ondigitalocean.app/gardens/plants/${plant.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
           },
-        },
-      ]
-    );
+        }
+      );
+      const isJson = response.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? await response.json() : {};
+      console.log('[Delete] Status:', response.status);
+      console.log('[Delete] Response:', data);
+
+      if (response.ok) {
+        setModalVisible(false);
+        setConfirmVisible(true);
+      } else {
+        throw new Error(data.detail || 'Error eliminando planta');
+      }
+    } catch (error) {
+      console.error('[Delete] Error:', error.message);
+    } finally {
+      setLoadingDelete(false);
+    }
   };
+
+  if (!plant?.id || !accessToken) {
+    console.log('[DEBUG] plant.id o accessToken no disponible todavía');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text style={{ marginTop: 10, color: '#4CAF50' }}>Cargando datos de la planta...</Text>
+      </View>
+    );
+  }
+
 
   return (
     <View style={styles.container}>
@@ -270,14 +330,13 @@ const PlantDetails = ({ route, navigation }) => {
           <TouchableOpacity
             style={[styles.button, styles.editButton]}
             activeOpacity={0.7}
-            onPress={() =>
+            onPress={() => {
               navigation.navigate('EditPlant', {
                 plant,
                 gardenId: plant.garden_id,
-                gardenName: plant.garden_name || '',
-                onUpdate: (updatedPlant) => setPlant(updatedPlant),
-              })
-            }
+                gardenName: gardenName,
+              });
+            }}
           >
             <Text style={styles.editButtonText}>Editar planta</Text>
           </TouchableOpacity>
@@ -285,7 +344,7 @@ const PlantDetails = ({ route, navigation }) => {
           <TouchableOpacity
             style={[styles.button, styles.deleteButton]}
             activeOpacity={0.7}
-            onPress={handleDelete}
+            onPress={() => setModalVisible(true)}
             disabled={loadingDelete}
           >
             {loadingDelete ? (
@@ -296,6 +355,66 @@ const PlantDetails = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      {/* Modal de confirmación */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModal}>
+            <Text style={styles.confirmTitle}>Confirmar eliminación</Text>
+            <Text style={styles.confirmMessage}>
+              ¿Estás seguro de eliminar la planta "{plant.alias}"?
+            </Text>
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButtonModal]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.saveButtonModal]}
+                onPress={handleDelete}
+              >
+                <Text style={styles.saveButtonText}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de éxito */}
+      <Modal
+        visible={confirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModal}>
+            <Text style={styles.confirmTitle}>Planta eliminada</Text>
+            <Text style={styles.confirmMessage}>La planta fue eliminada correctamente.</Text>
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.saveButtonModal]}
+                onPress={() => {
+                  setConfirmVisible(false);
+                  navigation.navigate('Plants', {
+                    refresh: true,
+                    gardenId: plant.garden_id,
+                    gardenName,
+                  });
+                }}
+              >
+                <Text style={styles.saveButtonText}>Aceptar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -404,13 +523,62 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmModal: {
+    backgroundColor: '#fff',
+    width: '80%',
+    borderRadius: 12,
+    padding: 20,
+  },
+  confirmTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#4CAF50',
+  },
+  confirmMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cancelButtonModal: {
+    flex: 1,
+    marginRight: 10,
+    backgroundColor: '#ddd',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonModal: {
+    flex: 1,
+    backgroundColor: '#E53935',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  cancelButtonText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   alarmButton: {
     position: 'absolute',
     right: 16,
     top: 10,
     padding: 0,
   },
-
   alarmIcon: {
     width: 40,
     height: 40,
